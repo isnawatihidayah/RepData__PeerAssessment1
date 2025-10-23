@@ -1,0 +1,162 @@
+---
+title: "PA1_template"
+author: "Isnawati Hidayah"
+date: "2025-10-11"
+output: html_document
+---
+
+
+
+# ==========================
+# Load necessary libraries
+# ==========================
+setwd("/Users/isnawatihidayah/Documents/Graduation Course")
+install.packages("dplyr")
+library(dplyr)
+library
+
+## Loading and preprocessing the data
+
+# ==========================
+# 1. Load the data
+# ==========================
+activity_data <- read.csv("activity.csv")  # Replace with actual path if needed
+str(activity_data)
+head(activity_data)
+
+# ==========================
+# 2. Preprocessing
+# ==========================
+# To convert 'date' to date type
+activity_data$date <- as.Date(activity_data$date, format = "%Y-%m-%d")
+
+## What is mean total number of steps taken per day?
+# ==========================
+# 3. To calculate total steps per day (ignoring NAs)
+# ==========================
+total_steps_per_day <- activity_data %>%
+  group_by(date) %>%
+  summarize(total_steps = sum(steps, na.rm = TRUE))
+
+# To create histogram of total steps per day
+hist(total_steps_per_day$total_steps,
+     main = "Total Steps per Day",
+     xlab = "Total Steps",
+     col = "yellow",
+     breaks = 20)
+
+# Mean and median total steps per day
+mean_total_stepsperday <- mean(total_steps_per_day$total_steps)
+median_total_stepsperday <- median(total_steps_per_day$total_steps)
+mean_total_stepsperday
+median_total_stepsperday
+## What is the average daily activity pattern?
+# ==========================
+# 4. To calculate average daily activity pattern
+# ==========================
+average_steps_interval <- activity_data %>%
+  group_by(interval) %>%
+  summarize(avg_steps = mean(steps, na.rm = TRUE))
+
+# To create time series plot
+plot(average_steps_interval$interval, average_steps_interval$avg_steps,
+     type = "l",
+     main = "Average Daily Activity Pattern",
+     xlab = "5-minute interval",
+     ylab = "Average steps",
+     col = "blue")
+
+# To calculate interval with maximum average steps
+max_intervalmax <- average_steps_interval[which.max(average_steps_interval$avg_steps),]
+max_intervalmax
+
+## Imputing missing values
+# ==========================
+# 5. To impute missing values
+# ==========================
+# Number of missing values
+num_missingvalues <- sum(is.na(activity_data$steps))
+num_missingvalues
+
+
+# Make a copy of the original dataset
+filled_data5min <- activity_data
+
+# Fill missing values with the mean for that 5-minute interval
+filled_data5min$steps <- ifelse(
+  is.na(filled_data5min$steps),
+  ave(filled_data5min$steps, filled_data5min$interval, FUN = function(x) mean(x, na.rm = TRUE)),
+  filled_data5min$steps
+)
+
+
+# Total steps per day with filled data
+total_steps_filled <- filled_data5min %>%
+  group_by(date) %>%
+  summarize(total_steps = sum(steps))
+
+# Histogram after imputing missing data
+hist(total_steps_filled$total_steps,
+     main = "Total Steps per Day (Filled Data)",
+     xlab = "Total Steps",
+     col = "red",
+     breaks = 20)
+
+# Mean and median after imputing missing data
+mean_filled <- mean(total_steps_filled$total_steps)
+median_filled <- median(total_steps_filled$total_steps)
+mean_filled
+median_filled
+
+## Are there differences in activity patterns between weekdays and weekends?
+# ==========================
+# 6. Weekday vs Weekend patterns
+# ==========================
+# Add weekday/weekend factor
+filled_data5min$day_type <- ifelse(weekdays(filled_data5min$date) %in% c("Saturday", "Sunday"),
+                               "weekend", "weekday")
+filled_data5min$day_type <- factor(filled_data5min$day_type)
+
+# Average steps by interval and day type
+avg_steps_daytype <- filled_data5min %>%
+  group_by(interval, day_type) %>%
+  summarize(avg_steps = mean(steps))
+
+# Panel plot
+library(lattice)
+xyplot(avg_steps ~ interval | day_type,
+       data = avg_steps_daytype,
+       type = "l",
+       layout = c(1,2),
+       xlab = "5-minute interval",
+       ylab = "Average steps",
+       main = "Average Steps by Interval: Weekday vs Weekend")
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+``` r
+summary(cars)
+```
+
+```
+##      speed           dist       
+##  Min.   : 4.0   Min.   :  2.00  
+##  1st Qu.:12.0   1st Qu.: 26.00  
+##  Median :15.0   Median : 36.00  
+##  Mean   :15.4   Mean   : 42.98  
+##  3rd Qu.:19.0   3rd Qu.: 56.00  
+##  Max.   :25.0   Max.   :120.00
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+![plot of chunk pressure](figure/pressure-1.png)
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
